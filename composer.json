@@ -1,0 +1,15 @@
+{
+    "name": "vladis/orm",
+    "authors": [
+        {
+            "name": "Gordienko Vladislav",
+            "email": "gordienkovladis@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "ORM\\": "src/"
+        }
+    },
+    "require": {}
+}
