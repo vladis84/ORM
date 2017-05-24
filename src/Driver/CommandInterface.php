@@ -2,12 +2,12 @@
 
 namespace ORM\Driver;
 
-use ORM\Query\QueryInterface;
+use ORM\Query\Query;
 
 /**
  *
  */
 interface CommandInterface
 {
-    public function execute(QueryInterface $query);
+    public function execute(Query $query);
 }

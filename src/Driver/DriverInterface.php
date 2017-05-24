@@ -2,14 +2,19 @@
 
 namespace ORM\Driver;
 
-use ORM\Query\QueryInterface;
+use ORM\Query\Query;
 
 interface DriverInterface
 {
     /**
      * Выполняет запрос к БД.
-     * @param QueryInterface $query
-     * @return type Description
+     * @param Query $query
+     * @return \PDOStatement
      */
-    public function execute(QueryInterface $query);
+    public function execute(Query $query);
+
+    /**
+     * @return int
+     */
+    public function getLastInsertId();
 }

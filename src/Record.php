@@ -2,7 +2,7 @@
 
 namespace ORM;
 
-use ORM\Query\{Select, Update};
+use ORM\Query\{Select, Update, Insert};
 
 /**
  *
@@ -38,34 +38,47 @@ class Record
     public static function getInstance($id)
     {
         $query = new Select();
-        $query->table(static::table())
+        $query
+            ->table(static::table())
             ->select(static::$fieldsMap)
-            ->where(['id' => $id]);
+            ->where([static::$pk => $id]);
 
-        $values = \ORM\ORM::getInstance()->storage()->find($query);
+        $values = \ORM\ORM::getInstance()->storage()->execute($query)->fetch(\PDO::FETCH_ASSOC);
 
-        return new static($values[0]);
+        return new static($values);
     }
 
     public function save()
     {
-        // update
-        if ($this->{static::$pk}) {
-            $query = new Update();
-            $query->where([static::$pk => $this->{static::$pk}]);
-        }
-
         $values = [];
         foreach (get_object_vars($this) as $property => $value) {
-            if (isset(static::$fieldsMap[$property])) {
+            $column = static::$fieldsMap[$property] ?? null;
+            if ($column && $value) {
                 $values[static::$fieldsMap[$property]] = $value;
             }
         }
 
-        $query
-            ->table(static::table())
-            ->setValues($values);
+        // update
+        if ($this->{static::$pk}) {
+            $query = new Update();
+            $query
+                ->table(static::table())
+                ->setValues($values)
+                ->where([static::$pk => $this->{static::$pk}]);
+            \ORM\ORM::getInstance()->storage()->execute($query);
+        }
+        // insert
+        else {
+            $query = new Insert();
+            $query
+                ->table(static::table())
+                ->setValues($values);
 
-        \ORM\ORM::getInstance()->storage()->save($query);
+            \ORM\ORM::getInstance()->storage()->execute($query);
+
+            $this->{static::$pk} = \ORM\ORM::getInstance()->storage()->getLastInsertId(static::$pk);
+        }
+        
+        return true;
     }
 }

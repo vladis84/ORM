@@ -5,27 +5,10 @@ namespace ORM\Query;
 /**
  *
  */
-class Select implements SelectInterface
+class Select extends Query
 {
-    private $table;
-
-    /**
-     * {@inheritdoc}
-     */
-    public function table($table)
-    {
-        $this->table = $table;
-
-        return $this;
-    }
-
-    public function getTable()
-    {
-        return $this->table;
-    }
-
     private $where = [];
-    
+
     public function where(array $values)
     {
         $this->where = $values;
@@ -41,7 +24,7 @@ class Select implements SelectInterface
     private $columns;
 
     /**
-     * {@inheritdoc}
+     * 
      */
     public function select(array $columns)
     {
@@ -53,5 +36,15 @@ class Select implements SelectInterface
     public function getColumns()
     {
         return $this->columns;
+    }
+
+    public function one()
+    {
+        \ORM\ORM::getInstance()->storage()->find($this);
+    }
+
+    public function all()
+    {
+
     }
 }

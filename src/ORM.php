@@ -2,6 +2,8 @@
 
 namespace ORM;
 
+use ORM\Driver\PdoDriver;
+
 /**
  *
  */
@@ -14,9 +16,9 @@ class ORM
     private static $istance;
 
     /**
-     * @var Storage
+     * @var PdoDriver
      */
-    private $storage;
+    private $driver;
 
 
     private function __construct()
@@ -37,10 +39,10 @@ class ORM
 
     public function storage()
     {
-        if (!$this->storage) {
-            $this->storage = new Storage();
+        if (!$this->driver) {
+            $this->driver = new PdoDriver();
         }
 
-        return $this->storage;
+        return $this->driver;
     }
 }
