@@ -48,9 +48,9 @@ class Record
             ->select(static::$fieldsMap)
             ->where([static::$pk => $id]);
 
-        $entity = \ORM\Storage::getInstance()->getRecord($select);
+        $record = \ORM\Storage::getInstance()->getRecord($select);
 
-        return $entity;
+        return $record;
     }
 
     public function save()
