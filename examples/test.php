@@ -44,9 +44,11 @@ class User extends ORM\Record
 }
 
 
-$user = new User;
-$user->lastName = 'Иванова';
-$user->save();
+$user = User::getInstance(1);
+
+var_dump($user);
+
+$user = User::getInstance(1);
 
 var_dump($user);
 

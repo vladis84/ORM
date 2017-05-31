@@ -21,12 +21,18 @@ class Record
     {
         $shortClassName = preg_replace('/(\w+$)/', '$1', static::class);
 
-        $tableName = preg_replace('/([A-Z])/', '_$1', lcfirst($shortClassName));
+        $tableName = preg_replace_callback(
+            '/([A-Z])/',
+            function ($matches) {
+                return '_' . lcfirst($matches[0]);
+            },
+            lcfirst($shortClassName)
+        );
 
         return strtolower($tableName);
     }
 
-    public function __construct(array $values = [])
+    public function populate(array $values = [])
     {
         foreach ($values as $property => $value) {
             if (property_exists($this, $property)) {
@@ -37,15 +43,14 @@ class Record
 
     public static function getInstance($id)
     {
-        $query = new Select();
-        $query
+        $select = Select::create(static::class)
             ->table(static::table())
             ->select(static::$fieldsMap)
             ->where([static::$pk => $id]);
 
-        $values = \ORM\ORM::getInstance()->storage()->execute($query)->fetch(\PDO::FETCH_ASSOC);
+        $entity = \ORM\Storage::getInstance()->getRecord($select);
 
-        return new static($values);
+        return $entity;
     }
 
     public function save()
@@ -54,7 +59,7 @@ class Record
         foreach (get_object_vars($this) as $property => $value) {
             $column = static::$fieldsMap[$property] ?? null;
             if ($column && $value) {
-                $values[static::$fieldsMap[$property]] = $value;
+                $values[$column] = $value;
             }
         }
 
@@ -65,6 +70,7 @@ class Record
                 ->table(static::table())
                 ->setValues($values)
                 ->where([static::$pk => $this->{static::$pk}]);
+                
             \ORM\ORM::getInstance()->storage()->execute($query);
         }
         // insert
@@ -80,5 +86,9 @@ class Record
         }
         
         return true;
+    }
+
+    public function delete()
+    {
     }
 }

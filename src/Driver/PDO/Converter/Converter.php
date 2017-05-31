@@ -1,9 +1,9 @@
 <?php
 
-namespace ORM\Driver\Converter;
+namespace ORM\Driver\PDO\Converter;
 
 /**
- *
+ * Базовый класс конвертеров.
  */
 abstract class Converter
 {

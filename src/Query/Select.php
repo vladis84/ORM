@@ -40,11 +40,6 @@ class Select extends Query
 
     public function one()
     {
-        \ORM\ORM::getInstance()->storage()->find($this);
-    }
-
-    public function all()
-    {
-
+        return \ORM\Storage::getInstance()->find($this);
     }
 }
