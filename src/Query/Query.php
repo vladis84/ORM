@@ -13,20 +13,15 @@ abstract class Query
     private $table;
 
     /**
-     *
-     * @param string $className
-     * @return \static
+     * @return static
      */
-    public static function create($className)
+    public static function create()
     {
         $query = new static;
-
-        $query->recordClass = $className;
 
         return $query;
     }
 
-    private $recordClass;
 
     function getRecordClass()
     {
