@@ -1,6 +1,6 @@
 <?php
 
-namespace ORM\Driver\PDO\Converter;
+namespace ORM\Driver\DB\PDO\Converter;
 
 use ORM\Query\Insert;
 
@@ -22,12 +22,13 @@ class InsertConverter extends Converter
         
         $values  = [];
         foreach (array_keys($insert->getValues()) as $column) {
-            $values[]  = "{$column} = :{$column}";
+            $values[]  = ":{$column}";
         }
 
         $sql = sprintf(
-            'INSERT INTO %s SET %s',
+            'INSERT INTO %s (%s) VALUES (%s)',
             $insert->getTable(), 
+            join(', ', array_keys($insert->getValues())),
             join(', ', $values)
         );
 

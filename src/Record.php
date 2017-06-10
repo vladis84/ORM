@@ -39,20 +39,23 @@ class Record
         }
     }
 
+    /**
+     *
+     * @param int $id
+     * @return static
+     */
     public static function getInstance($id)
     {
-        return Registry::recordRepository()->getRecordIstance(static::class, $id);
+        return ORM::getInstance()->recordRepository->getRecordIstance(static::class, $id);
     }
 
     public function save()
     {
-        $mapper = new RecordMapper();
-        $mapper->save($this);
+       return ORM::getInstance()->recordRepository->save($this);
     }
 
     public function delete()
     {
-        $mapper = new RecordMapper();
-        $mapper->delete($this);
+        return ORM::getInstance()->recordRepository->delete($this);
     }
 }

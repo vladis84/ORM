@@ -43,12 +43,13 @@ class User extends ORM\Record
     public $lastName;
 }
 
-
-$user = User::getInstance(1);
+\ORM\ORM::getInstance()->run();
+$user = User::getInstance(23);
 
 var_dump($user);
 
-$user = User::getInstance(1);
+$user->lastName = 'Петрова5';
+$user->save();
 
 var_dump($user);
 

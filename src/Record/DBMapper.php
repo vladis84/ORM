@@ -2,8 +2,7 @@
 
 namespace ORM\Record;
 
-use ORM\Query\{Select, Update, Insert};
-use ORM\Driver\PDO\Driver;
+use ORM\Query\{Select, Update, Insert, Delete};
 
 /**
  * Ищет в базе данных.
@@ -20,7 +19,7 @@ class DBMapper implements DataMapperInterface
             ->select($className::$fieldsMap)
             ->where([$className::$pk => $id]);
 
-        $values = \ORM\Registry::db()->execute($select)->one();
+        $values = \ORM\ORM::getInstance()->db->execute($select)->one();
 
         /* @var $record Record */
         $record = new $className;
@@ -34,34 +33,42 @@ class DBMapper implements DataMapperInterface
      */
     public function save(\ORM\Record $record)
     {
+        $className = get_class($record);
+
         $values = [];
-        foreach (get_object_vars($this) as $property => $value) {
-            $column = static::$fieldsMap[$property] ?? null;
-            if ($column && $value) {
+        foreach (get_object_vars($record) as $property => $value) {
+            $column = $className::$fieldsMap[$property] ?? null;
+            if ($column) {
                 $values[$column] = $value;
             }
         }
 
-        // update
-        if ($this->{static::$pk}) {
-            $query = new Update();
-            $query
-                ->table(static::table())
-                ->setValues($values)
-                ->where([static::$pk => $this->{static::$pk}]);
+        $isNeedUpdate = false;
+        $id = $record->{$className::$pk};
+        if ($id) {
+            $select = Select::create()
+                ->table($className::table())
+                ->select([$className::$pk])
+                ->where([$className::$pk => $id]);
+            $isNeedUpdate = (bool) \ORM\ORM::getInstance()->db->execute($select)->getAffectedRows();
+        }
 
-            \ORM\ORM::getInstance()->storage()->execute($query);
+        // update
+        if ($isNeedUpdate) {
+            $query = Update::create()
+                ->table($className::table())
+                ->setValues($values)
+                ->where([$className::$pk => $record->{$className::$pk}]);
+
+            \ORM\ORM::getInstance()->db->execute($query);
         }
         // insert
         else {
-            $query = new Insert();
-            $query
-                ->table(static::table())
+            $query =  Insert::create()
+                ->table($className::table())
                 ->setValues($values);
 
-            \ORM\ORM::getInstance()->storage()->execute($query);
-
-            $this->{static::$pk} = \ORM\ORM::getInstance()->storage()->getLastInsertId(static::$pk);
+            $record->{$className::$pk} = \ORM\ORM::getInstance()->db->execute($query)->getLastInsertId($className::$pk);
         }
 
         return true;
@@ -72,6 +79,15 @@ class DBMapper implements DataMapperInterface
      */
     public function delete(\ORM\Record $record)
     {
+        $className = get_class($record);
+        $pk = $className::$pk;
 
+        $values = [$pk => $record->$pk];
+
+        $query = Delete::create()
+            ->table($className::table())
+            ->where($values);
+
+        return (bool) \ORM\ORM::getInstance()->db->execute($query)->getAffectedRows();
     }
 }

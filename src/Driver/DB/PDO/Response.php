@@ -1,6 +1,6 @@
 <?php
 
-namespace ORM\Driver\PDO;
+namespace ORM\Driver\DB\PDO;
 
 use ORM\Driver\ResponseInterface;
 
@@ -20,7 +20,7 @@ class Response implements ResponseInterface
 
     public function all()
     {
-        return $this->statement->fetchAll(\PDO::FETCH_ASSOC);
+        return $this->statement->fetchAll(\PDO::FETCH_ASSOC) ?: [];
     }
 
     public function getAffectedRows()
@@ -35,6 +35,6 @@ class Response implements ResponseInterface
 
     public function one()
     {
-        return $this->statement->fetch(\PDO::FETCH_ASSOC);
+        return $this->statement->fetch(\PDO::FETCH_ASSOC) ?: [];
     }
 }

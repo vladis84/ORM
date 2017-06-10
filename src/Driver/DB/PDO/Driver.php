@@ -1,11 +1,11 @@
 <?php
 
-namespace ORM\Driver\PDO;
+namespace ORM\Driver\DB\PDO;
 
 use ORM\Driver\DriverInterface;
 
-use ORM\Query\{Query, Select, Insert, Update};
-use ORM\Driver\PDO\Converter\{SelectConverter, InsertConverter, UpdateConverter};
+use ORM\Query\{Query, Select, Insert, Update, Delete};
+use ORM\Driver\DB\PDO\Converter\{SelectConverter, InsertConverter, UpdateConverter, DeleteConverter};
 
 /**
  * Драйвер для работы с PDO.
@@ -15,18 +15,20 @@ class Driver implements DriverInterface
     /**
      * @var \PDO
      */
-    private static $connect;
+    private $connect;
 
-    public function __construct()
+    public $dsn;
+    public $user;
+    public $password;
+
+    private function connect()
     {
-        $dsn = 'mysql:dbname=orm;host=127.0.0.1';
-        $user = 'root';
-        $password = '1234567';
-
-        if (!self::$connect) {
-            self::$connect = new \PDO($dsn, $user, $password);
-            self::$connect->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        if (!$this->connect) {
+            $this->connect = new \PDO($this->dsn, $this->user, $this->password);
+            $this->connect->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         }
+
+        return $this->connect;
     }
 
     /**
@@ -43,17 +45,20 @@ class Driver implements DriverInterface
         elseif ($query instanceof Update) {
             $converter = new UpdateConverter($query);
         }
+        elseif ($query instanceof Delete) {
+            $converter = new DeleteConverter($query);
+        }
         else {
             throw new \LogicException('Не известный тип запроса - ' . get_class($query));
         }
 
         $sql = $converter->toSQL();
 
-        $statement = self::$connect->prepare($sql);
+        $statement = $this->connect()->prepare($sql);
 
         $params = $converter->queryParams();
         $statement->execute($params);
 
-        return new Response($statement, self::$connect);
+        return new Response($statement, $this->connect());
     }
 }

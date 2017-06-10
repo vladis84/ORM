@@ -1,6 +1,6 @@
 <?php
 
-namespace ORM\Driver\PDO\Converter;
+namespace ORM\Driver\DB\PDO\Converter;
 
 use ORM\Query\Update;
 
