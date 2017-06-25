@@ -7,7 +7,6 @@ namespace ORM\Record;
  */
 class DBMapper implements DataMapperInterface
 {
-
     /**
      * {@inheritdoc}
      */
@@ -35,11 +34,16 @@ class DBMapper implements DataMapperInterface
             $columns[] = sprintf("%s AS '%s'", $column, $alias);
         }
 
+        $pk = $className::$pk;
+
         $sql = sprintf(
-            'SELECT %s FROM %s WHERE %s = :%s', join(', ', $columns), $className::table(), $className::$pk, $className::$pk
+            'SELECT %s FROM %s WHERE %3$s = :%3$s',
+            join(', ', $columns),
+            $className::table(),
+            $pk
         );
 
-        return \ORM\ORM::getInstance()->db->execute($sql, [$className::$pk => $id]);
+        return \ORM\ORM::getInstance()->db->execute($sql, [$pk => $id]);
     }
 
     /**
