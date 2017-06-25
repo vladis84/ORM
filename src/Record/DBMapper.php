@@ -2,24 +2,18 @@
 
 namespace ORM\Record;
 
-use ORM\Query\{Select, Update, Insert, Delete};
-
 /**
  * Ищет в базе данных.
  */
 class DBMapper implements DataMapperInterface
 {
+
     /**
      * {@inheritdoc}
      */
     public function getRecordIstance($className, $id)
     {
-        $select = Select::create()
-            ->table($className::table())
-            ->select($className::$fieldsMap)
-            ->where([$className::$pk => $id]);
-
-        $values = \ORM\ORM::getInstance()->db->execute($select)->one();
+        $values = $this->select($className, $id)->one();
 
         /* @var $record Record */
         $record = new $className;
@@ -29,49 +23,103 @@ class DBMapper implements DataMapperInterface
     }
 
     /**
+     * Поиск записи в хранилище.
+     * @param string $className Название класса записи
+     * @param mixed $id Значение ключа.
+     * @return \ORM\Driver\DB\DriverInterface
+     */
+    private function select($className, $id)
+    {
+        $columns = [];
+        foreach ($className::$fieldsMap as $alias => $column) {
+            $columns[] = sprintf("%s AS '%s'", $column, $alias);
+        }
+
+        $sql = sprintf(
+            'SELECT %s FROM %s WHERE %s = :%s', join(', ', $columns), $className::table(), $className::$pk, $className::$pk
+        );
+
+        return \ORM\ORM::getInstance()->db->execute($sql, [$className::$pk => $id]);
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function save(\ORM\Record $record)
     {
         $className = get_class($record);
-
-        $values = [];
-        foreach (get_object_vars($record) as $property => $value) {
-            $column = $className::$fieldsMap[$property] ?? null;
-            if ($column) {
-                $values[$column] = $value;
-            }
-        }
+        $id = $record->{$className::$pk};
 
         $isNeedUpdate = false;
-        $id = $record->{$className::$pk};
         if ($id) {
-            $select = Select::create()
-                ->table($className::table())
-                ->select([$className::$pk])
-                ->where([$className::$pk => $id]);
-            $isNeedUpdate = (bool) \ORM\ORM::getInstance()->db->execute($select)->getAffectedRows();
+            $isNeedUpdate = (bool) $this->select($className, $id)->getAffectedRows();
         }
 
         // update
         if ($isNeedUpdate) {
-            $query = Update::create()
-                ->table($className::table())
-                ->setValues($values)
-                ->where([$className::$pk => $record->{$className::$pk}]);
-
-            \ORM\ORM::getInstance()->db->execute($query);
+            $this->update($record);
         }
         // insert
         else {
-            $query =  Insert::create()
-                ->table($className::table())
-                ->setValues($values);
-
-            $record->{$className::$pk} = \ORM\ORM::getInstance()->db->execute($query)->getLastInsertId($className::$pk);
+            $this->insert($record);
         }
 
         return true;
+    }
+
+    private function update(\ORM\Record $record)
+    {
+        $className = get_class($record);
+        $pk = $className::$pk;
+        $id = $record->$pk;
+
+        $values = [];
+        $params = [];
+        foreach (get_object_vars($record) as $property => $value) {
+            $column = $className::$fieldsMap[$property] ?? null;
+            if ($column && $column != $pk) {
+                $values[] = "{$column} = :{$column}";
+                $params[$column] = $value;
+            }
+        }
+
+        $sql = sprintf(
+            'UPDATE %s SET %s WHERE %3$s = :%3$s',
+            $className::table(),
+            join(', ', $values),
+            $pk
+        );
+
+        $params[$pk] = $id;
+
+        \ORM\ORM::getInstance()->db->execute($sql, $params);
+    }
+
+    private function insert(\ORM\Record $record)
+    {
+        $className = get_class($record);
+        $pk = $className::$pk;
+
+        $values = [];
+        $params = [];
+        foreach (get_object_vars($record) as $property => $value) {
+            $column = $className::$fieldsMap[$property] ?? null;
+            if ($column) {
+                $values[] = ":{$column}";
+                $params[$column] = $value;
+            }
+        }
+
+        $columns = array_keys($params);
+
+        $sql = sprintf(
+            'INSERT INTO %s (%s) VALUES (%s)',
+            $className::table(),
+            join(', ', $columns),
+            join(', ', $values)
+        );
+
+        $record->$pk = \ORM\ORM::getInstance()->db->execute($sql, $params)->getLastInsertId($pk);
     }
 
     /**

@@ -1,13 +1,11 @@
 <?php
 
-namespace ORM\Driver\DB\PDO;
-
-use ORM\Driver\ResponseInterface;
+namespace ORM\Driver\DB;
 
 /**
  *
  */
-class Response implements ResponseInterface
+class PDOResponse implements ResponseInterface
 {
     private $statement;
     private $connect;

@@ -1,6 +1,6 @@
 <?php
 
-namespace ORM\Driver;
+namespace ORM\Driver\DB;
 
 /**
  *

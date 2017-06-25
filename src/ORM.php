@@ -13,7 +13,7 @@ class ORM
     private static $instance;
 
     /**
-     * @var \ORM\Driver\DriverInterface
+     * @var \ORM\Driver\DB\DriverInterface
      */
     public $db;
 

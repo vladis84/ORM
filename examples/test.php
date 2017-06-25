@@ -53,3 +53,9 @@ $user->save();
 
 var_dump($user);
 
+$user = new User();
+$user->lastName = 'Петрова85';
+$user->save();
+
+var_dump($user);
+
