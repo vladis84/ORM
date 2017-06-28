@@ -12,7 +12,10 @@ class DBMapper implements DataMapperInterface
      */
     public function getRecordIstance($className, $id)
     {
-        $values = $this->select($className, $id)->one();
+        $values = [];
+        if ($id) {
+            $values = $this->select($className, $id)->one();
+        }
 
         /* @var $record Record */
         $record = new $className;
@@ -134,12 +137,14 @@ class DBMapper implements DataMapperInterface
         $className = get_class($record);
         $pk = $className::$pk;
 
-        $values = [$pk => $record->$pk];
+        $params = [$pk => $record->$pk];
 
-        $query = Delete::create()
-            ->table($className::table())
-            ->where($values);
+        $sql = sprintf(
+            'DELETE FROM %s WHERE %2$s = :%2$s',
+            $className::table(),
+            $pk
+        );
 
-        return (bool) \ORM\ORM::getInstance()->db->execute($query)->getAffectedRows();
+        return (bool) \ORM\ORM::getInstance()->db->execute($sql, $params)->getAffectedRows();
     }
 }

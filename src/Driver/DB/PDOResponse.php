@@ -7,7 +7,14 @@ namespace ORM\Driver\DB;
  */
 class PDOResponse implements ResponseInterface
 {
+    /**
+     * @var \PDOStatement
+     */
     private $statement;
+
+    /**
+     * @var \PDO
+     */
     private $connect;
 
     public function __construct(\PDOStatement $statement, \PDO $connect)

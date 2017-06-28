@@ -59,3 +59,5 @@ $user->save();
 
 var_dump($user);
 
+$user->delete();
+

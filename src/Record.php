@@ -44,7 +44,7 @@ class Record
      * @param int $id
      * @return static
      */
-    public static function getInstance($id)
+    public static function getInstance($id = null)
     {
         return ORM::getInstance()->recordRepository->getRecordIstance(static::class, $id);
     }
