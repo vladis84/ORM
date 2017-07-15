@@ -47,6 +47,23 @@ class User extends ORM\Record
     public $lastName;
 }
 
+class UserRepository extends \ORM\Repository
+{
+    protected $recordClassName = User::class;
+
+    public function findUserByLastName($lastName)
+    {
+        $sql = "SELECT id FROM user WHERE last_name LIKE :lastName";
+        $response = $this->query($sql, ['lastName' => $lastName]);
+
+        $value = $response->one();
+        
+        $record = $this->recordClassName::getInstance($value['id']);
+
+        return $record;
+    }
+}
+
 $config = [
     'db' => [
         'class'    => \ORM\Driver\DB\PDO::class,
@@ -57,20 +74,6 @@ $config = [
 ];
 
 \ORM\ORM::getInstance()->run($config);
-$user = User::getInstance(23);
 
-var_dump($user);
-
-$user->lastName = 'Петрова5';
-$user->save();
-
-var_dump($user);
-
-$user = new User();
-$user->lastName = 'Петрова85';
-$user->save();
-
-var_dump($user);
-
-$user->delete();
-
+$userRepository = new UserRepository;
+$userRepository->findUserByLastName('Петрова5');

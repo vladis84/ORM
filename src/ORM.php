@@ -43,7 +43,7 @@ class ORM
     {
         $baseConfig = require __DIR__ . '/../config.php';
 
-        $config = array_merge_recursive($baseConfig, $customConfig);
+        $config = array_replace_recursive($baseConfig, $customConfig);
 
         $db = new $config['db']['class'];
         foreach ($config['db'] as $property => $value) {
